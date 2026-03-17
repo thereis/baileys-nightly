@@ -84,7 +84,7 @@ jobs:
       - name: Install dependencies
         if: steps.check.outputs.skip == 'false'
         working-directory: upstream
-        run: yarn install
+        run: YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install
 
       - name: Build
         if: steps.check.outputs.skip == 'false'
