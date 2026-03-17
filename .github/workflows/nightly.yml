@@ -106,9 +106,33 @@ jobs:
           git tag "nightly-${{ steps.upstream.outputs.short_sha }}"
           git push origin "nightly-${{ steps.upstream.outputs.short_sha }}"
 
+          VERSION="${{ steps.prepare.outputs.version }}"
+
+          cat > /tmp/release-notes.md << EOF
+          Upstream commit: WhiskeySockets/Baileys@${{ steps.upstream.outputs.sha }}
+
+          ## Usage
+
+          Add to your \`package.json\`:
+
+          \`\`\`json
+          {
+            "dependencies": {
+              "@whiskeysockets/baileys": "npm:@thereis/baileys-nightly@${VERSION}"
+            }
+          }
+          \`\`\`
+
+          Or install directly (not recommended, always use the original @whiskeysockets/baileys package):
+
+          \`\`\`bash
+          pnpm add @thereis/baileys-nightly@${VERSION}
+          \`\`\`
+          EOF
+
           gh release create "nightly-${{ steps.upstream.outputs.short_sha }}" \
-            --title "Nightly ${{ steps.prepare.outputs.version }}" \
-            --notes "Upstream commit: WhiskeySockets/Baileys@${{ steps.upstream.outputs.sha }}" \
+            --title "Nightly ${VERSION}" \
+            --notes-file /tmp/release-notes.md \
             upstream/*.tgz
         env:
           GH_TOKEN: ${{ github.token }}

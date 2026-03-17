@@ -1,6 +1,6 @@
 # @thereis/baileys-nightly
 
-[![npm](https://img.shields.io/npm/v/@thereis/baileys-nightly)](https://www.npmjs.com/package/@thereis/baileys-nightly)
+[![npm](https://img.shields.io/npm/v/%40thereis%2Fbaileys-nightly)](https://www.npmjs.com/package/%40thereis%2Fbaileys-nightly)
 [![X (Twitter)](https://img.shields.io/badge/X-@dev__reis-000000?logo=x)](https://x.com/dev_reis)
 [![GitHub](https://img.shields.io/badge/GitHub-thereis-181717?logo=github)](https://github.com/thereis)
 
@@ -15,19 +15,19 @@ Nightly builds are automated snapshots of the latest code from the Baileys repos
 > [!WARNING]
 > Nightly builds may contain breaking changes. For stable usage, always prefer the official [RC releases](https://github.com/WhiskeySockets/Baileys/releases). Use nightlies at your own risk.
 
-### Drop-in replacement for `baileys`
+### Drop-in replacement for `@whiskeysockets/baileys`
 
-If you already use `baileys` and want to switch to nightlies without changing any imports, update your `package.json`:
+If you already use `@whiskeysockets/baileys` and want to switch to nightlies without changing any imports, update your `package.json`:
 
 ```json
 {
   "dependencies": {
-    "baileys": "npm:@thereis/baileys-nightly@latest"
+    "@whiskeysockets/baileys": "npm:@thereis/baileys-nightly@latest"
   }
 }
 ```
 
-Then run `pnpm install`. All your `import { ... } from 'baileys'` will keep working — npm resolves it to the nightly package.
+Then run `pnpm install`. All your `import { ... } from '@whiskeysockets/baileys'` will keep working — npm resolves it to the nightly package.
 
 ### Pin a specific version
 
@@ -54,19 +54,19 @@ Builds nightly são snapshots automatizados do código mais recente do repositó
 > [!WARNING]
 > Builds nightly podem conter mudanças que quebram compatibilidade. Para uso estável, sempre prefira as [versões RC oficiais](https://github.com/WhiskeySockets/Baileys/releases). Use as nightlies por sua conta e risco.
 
-### Substituição direta do `baileys`
+### Substituição direta do `@whiskeysockets/baileys`
 
-Se você já usa `baileys` e quer trocar para as nightlies sem alterar nenhum import, atualize seu `package.json`:
+Se você já usa `@whiskeysockets/baileys` e quer trocar para as nightlies sem alterar nenhum import, atualize seu `package.json`:
 
 ```json
 {
   "dependencies": {
-    "baileys": "npm:@thereis/baileys-nightly@latest"
+    "@whiskeysockets/baileys": "npm:@thereis/baileys-nightly@latest"
   }
 }
 ```
 
-Depois rode `pnpm install`. Todos os seus `import { ... } from 'baileys'` continuam funcionando — o npm resolve para o pacote nightly.
+Depois rode `pnpm install`. Todos os seus `import { ... } from '@whiskeysockets/baileys'` continuam funcionando — o npm resolve para o pacote nightly.
 
 ### Fixar uma versão específica
 
