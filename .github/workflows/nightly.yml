@@ -1,0 +1,114 @@
+name: Nightly Build
+
+on:
+  schedule:
+    - cron: "0 20 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: nightly-build
+  cancel-in-progress: false
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get latest upstream commit
+        id: upstream
+        run: |
+          UPSTREAM_SHA=$(gh api repos/WhiskeySockets/Baileys/commits/master --jq '.sha')
+          UPSTREAM_SHORT_SHA=${UPSTREAM_SHA:0:8}
+          echo "sha=$UPSTREAM_SHA" >> "$GITHUB_OUTPUT"
+          echo "short_sha=$UPSTREAM_SHORT_SHA" >> "$GITHUB_OUTPUT"
+          echo "Latest upstream commit: $UPSTREAM_SHORT_SHA"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Check if already published
+        id: check
+        run: |
+          if git tag -l | grep -q "nightly-${{ steps.upstream.outputs.short_sha }}"; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Already published nightly for ${{ steps.upstream.outputs.short_sha }}, skipping."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "New commit detected, proceeding with build."
+          fi
+
+      - name: Clone upstream
+        if: steps.check.outputs.skip == 'false'
+        run: |
+          git clone --depth 1 https://github.com/WhiskeySockets/Baileys.git upstream
+
+      - name: Prepare package.json
+        id: prepare
+        if: steps.check.outputs.skip == 'false'
+        working-directory: upstream
+        run: |
+          DATE=$(date -u +%Y%m%d)
+          SHORT_SHA="${{ steps.upstream.outputs.short_sha }}"
+          BASE_VERSION=$(node -p "require('./package.json').version")
+          NIGHTLY_VERSION="${BASE_VERSION}-nightly.${DATE}.${SHORT_SHA}"
+
+          node -e "
+            const pkg = require('./package.json');
+            pkg.name = '@thereis/baileys-nightly';
+            pkg.version = '${NIGHTLY_VERSION}';
+            delete pkg.scripts.prepare;
+            delete pkg.scripts.prepack;
+            delete pkg.scripts.preinstall;
+            require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2));
+          "
+
+          echo "Publishing version: ${NIGHTLY_VERSION}"
+          echo "version=$NIGHTLY_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Node.js
+        if: steps.check.outputs.skip == 'false'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+
+      - name: Enable Corepack
+        if: steps.check.outputs.skip == 'false'
+        run: corepack enable
+
+      - name: Install dependencies
+        if: steps.check.outputs.skip == 'false'
+        working-directory: upstream
+        run: yarn install
+
+      - name: Build
+        if: steps.check.outputs.skip == 'false'
+        working-directory: upstream
+        run: yarn build
+
+      - name: Pack and publish to npm
+        if: steps.check.outputs.skip == 'false'
+        working-directory: upstream
+        run: |
+          npm pack
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create tag and GitHub Release
+        if: steps.check.outputs.skip == 'false'
+        run: |
+          git tag "nightly-${{ steps.upstream.outputs.short_sha }}"
+          git push origin "nightly-${{ steps.upstream.outputs.short_sha }}"
+
+          gh release create "nightly-${{ steps.upstream.outputs.short_sha }}" \
+            --title "Nightly ${{ steps.prepare.outputs.version }}" \
+            --notes "Upstream commit: WhiskeySockets/Baileys@${{ steps.upstream.outputs.sha }}" \
+            upstream/*.tgz
+        env:
+          GH_TOKEN: ${{ github.token }}
